@@ -14,7 +14,7 @@ export const getArticulos = async (req, res) => {
 export const getArticulo = async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM articulos where id = ?',[req.params.id] );
-        if(rows.length == 0) return res.status(404).json({message: 'Articulo no encontrado'});
+        if(rows.length === 0) return res.status(404).json({message: 'Articulo no encontrado'});
         res.json(rows[0]);
     } catch (error) {
         return res.status(500).json({
