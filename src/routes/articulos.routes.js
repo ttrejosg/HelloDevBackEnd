@@ -1,16 +1,28 @@
-import { Router } from 'express'
-import { getArticulos, getArticulo,createArticulos, updateArticulos, deleteArticulos } from '../controllers/articulos.controllers.js';
+import { Router } from "express";
+import {
+	createArticulo,
+	deleteArticulo,
+	getArticuloBy,
+	getArticuloById,
+	getArticulos,
+	getArticulosAutor,
+	patchEstadoArticulo,
+} from "../controllers/articulos.controllers.js";
 
 const router = Router();
 
-router.get('/articulos', getArticulos );
+router.get("/articulos", getArticulos);
 
-router.get('/articulos/:id', getArticulo);
+router.get("/articulos/autor/:id", getArticulosAutor);
 
-router.post('/articulos', createArticulos);
+router.get("/articulos/by", getArticuloBy);
 
-router.delete('/articulos/:id', deleteArticulos);
+router.get("/articulos/:id", getArticuloById);
 
-router.patch('/articulos/:id', updateArticulos);
+router.post("/articulos", createArticulo);
+
+router.patch("/articulos/:id", patchEstadoArticulo);
+
+router.delete("/articulos/:id", deleteArticulo);
 
 export default router;
