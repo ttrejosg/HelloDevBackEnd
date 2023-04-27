@@ -80,7 +80,7 @@ export const patchEstadoArticulo = async (req, res) => {
 		return res.status(500).json({ message: error.message });
 	}
 };
-[];
+
 export const deleteArticulo = async (req, res) => {
 	try {
 		const [result] = await pool.query("DELETE FROM articulos WHERE id_articulo = ?", [
