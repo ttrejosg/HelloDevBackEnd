@@ -26,8 +26,8 @@ export const getArticulo = async (req, res) => {
 
 
 export const createArticulos = async (req, res) => {
+    console.log(req.body);
     const { titulo, cover, resumen, contenido, estado, fecha} = req.body;
-     
     try {
         const [rows] = await pool.query('INSERT INTO articulos (titulo, cover, resumen, contenido, estado, fecha) VALUES (?,?,?,?,?,?)', [titulo, cover, resumen, contenido, estado, fecha]);  
         res.send({
