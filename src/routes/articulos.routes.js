@@ -6,6 +6,7 @@ import {
 	getArticuloById,
 	getArticulos,
 	getArticulosAutor,
+	multerMiddleware,
 	patchEstadoArticulo,
 } from "../controllers/articulos.controllers.js";
 
@@ -19,9 +20,16 @@ router.get("/articulos/by", getArticuloBy);
 
 router.get("/articulos/:id", getArticuloById);
 
-router.post("/articulos", createArticulo);
+router.post(
+	"/articulos",
+	multerMiddleware.fields([
+		{ name: "archivo", maxCount: 1 },
+		{ name: "portada", maxCount: 1 },
+	]),
+	createArticulo,
+);
 
-router.patch("/articulos/:id", patchEstadoArticulo);
+router.patch("/articulos", patchEstadoArticulo);
 
 router.delete("/articulos/:id", deleteArticulo);
 
