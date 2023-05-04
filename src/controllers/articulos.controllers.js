@@ -35,13 +35,11 @@ const insertFilesUrls = async (rows) => {
 		let extension;
 		for (const file of files) {
 			const splittedFile = file.split(".");
-			console.log(splittedFile);
 			if (splittedFile[0] === row.id.toString() && splittedFile[1] !== "pdf") {
 				extension = splittedFile[1];
 				break;
 			}
 		}
-		console.log(extension);
 		row.portada = `http://localhost:3000/articulos/${row.id}.${extension}`;
 		row.archivo = `http://localhost:3000/articulos/${row.id}.pdf`;
 	});
