@@ -1,3 +1,4 @@
+import { Router } from "express";
 import {
 	createAutor,
 	getAutorByFilter,
@@ -5,7 +6,6 @@ import {
 	getAutores,
 	loginAutor,
 } from "../controllers/autores.controllers.js";
-import { Router } from "express";
 
 const router = Router();
 

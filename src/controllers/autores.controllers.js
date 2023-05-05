@@ -1,5 +1,10 @@
 import { pool } from "../db.js";
 
+const ROLS = {
+	EDITOR: 0,
+	AUTOR: 1,
+};
+
 export const getAutores = async (req, res) => {
 	try {
 		const [rows] = await pool.query("SELECT * FROM full_autores");
@@ -48,7 +53,7 @@ export const loginAutor = async (req, res) => {
 					autenticado: true,
 					id: usuarios[0].id_usuario,
 					nombres: usuarios[0].nombres,
-					rol: ["autor"],
+					rol: ROLS.AUTOR,
 				});
 			} else {
 				const [editores] = await pool.query(
@@ -60,7 +65,7 @@ export const loginAutor = async (req, res) => {
 						autenticado: true,
 						id: usuarios[0].id_usuario,
 						nombres: usuarios[0].nombres,
-						rol: ["editor"],
+						rol: ROLS.EDITOR,
 					});
 				} else {
 					res.json({
