@@ -35,13 +35,11 @@ const insertFilesUrls = async (rows) => {
     let extension;
     for (const file of files) {
       const splittedFile = file.split(".");
-      console.log(splittedFile);
       if (splittedFile[0] === row.id.toString() && splittedFile[1] !== "pdf") {
         extension = splittedFile[1];
         break;
       }
     }
-    console.log(extension);
     row.portada = `http://localhost:3000/articulos/${row.id}.${extension}`;
     row.archivo = `http://localhost:3000/articulos/${row.id}.pdf`;
   });
@@ -72,7 +70,7 @@ export const getArticulos = async (req, res) => {
 export const getArticulosAutor = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "select a.id_articulo as id, a.titulo, a.fecha_creacion, e.nombre as estado from articulos as a, estados as e where id_autor = 1  and a.id_estado = e.id_estado and id_articulo not in (select id_articulo_origen from ediciones) union select t1.id_articulo as id,t1.titulo,t1.fecha_creacion,e.nombre as estado from (select * from ediciones as e inner join articulos as a on e.id_edicion = a.id_articulo where id_autor = 1) as t1, (select e1.id_articulo_origen as origen, max(a1.fecha_creacion) as lastEdition from ediciones as e1, articulos as a1 where e1.id_edicion = a1.id_articulo and a1.id_autor = 1 group by origen) as t2, estados as e where t1.id_articulo_origen = t2.origen and t1.id_estado = e.id_estado and t1.fecha_creacion = t2.lastEdition",
+      "select a.id_articulo as id, a.titulo, a.fecha_creacion, e.nombre as estado from articulos as a, estados as e where id_autor = 1  and a.id_estado = e.id_estado and e.id_estado != 5 and id_articulo not in (select id_articulo_origen from ediciones) union select t1.id_articulo as id,t1.titulo,t1.fecha_creacion,e.nombre as estado from (select * from ediciones as e inner join articulos as a on e.id_edicion = a.id_articulo where id_autor = 1) as t1, (select e1.id_articulo_origen as origen, max(a1.fecha_creacion) as lastEdition from ediciones as e1, articulos as a1 where e1.id_edicion = a1.id_articulo and a1.id_autor = 1 group by origen) as t2, estados as e where t1.id_articulo_origen = t2.origen and t1.id_estado = e.id_estado and e.id_estado != 5 and t1.fecha_creacion = t2.lastEdition",
       [req.params.id, req.params.id, req.params.id]
     );
     if (rows.length === 0)
@@ -192,7 +190,7 @@ export const createArticulo = async (req, res) => {
 export const deleteArticulo = async (req, res) => {
   try {
     const [result] = await pool.query(
-      "DELETE FROM articulos WHERE id_articulo = ?",
+      "UPDATE articulos SET id_estado = 5 WHERE id_articulo = ?",
       [req.params.id]
     );
     if (result.affectedRows <= 0)
