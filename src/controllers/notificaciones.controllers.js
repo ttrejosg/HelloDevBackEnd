@@ -26,7 +26,7 @@ const insertFilesUrls = async (rows) => {
 export const getNotificacionesEditorHistorial = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "select * from full_notificaciones where id_emisor = ? and id_estado = 3 or id_estado = 4 pr id_estado = 4 and id_autor = id_receptor order by fecha desc",
+      "select * from full_notificaciones where id_emisor = ? and id_estado = 3 or id_estado = 4 or id_estado = 4 and id_autor = id_receptor order by fecha desc",
       [req.params.id]
     );
     if (rows.length === 0)
@@ -70,13 +70,13 @@ export const getNotificacionesAutor = async (req, res) => {
 const verify = async (body) => {
   const { id_emisor, id_estado } = body;
 
-  if (id_emisor != 10) {
-    if (id_estado == 2)
+  if (id_emisor !== 10) {
+    if (id_estado === 2)
       throw new Error("El articulo ya ha sido enviado a revisión");
-    if (id_estado == 3)
+    if (id_estado === 3)
       throw new Error("El articulo ya ha sido aceptado/publicado");
-    if (id_estado == 5) throw new Error("El articulo ya ha sido eliminado");
-    if (id_estado == 6)
+    if (id_estado === 5) throw new Error("El articulo ya ha sido eliminado");
+    if (id_estado === 6)
       throw new Error("El articulo ha sido revertido, espere revisión");
   }
 };

@@ -78,7 +78,7 @@ export const getArticulos = async (req, res) => {
 export const getArticulosAutor = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "select a.id_articulo as id, a.titulo, a.fecha_creacion, a.resumen, e.nombre as estado, e.id_estado from articulos as a, estados as e where id_autor = ?  and a.id_estado = e.id_estado and e.id_estado != 5 and id_articulo not in (select id_articulo_origen from ediciones) and id_articulo not in (select id_edicion from ediciones)  union select t1.id_articulo as id,t1.titulo,t1.fecha_creacion,t1.resumen,e.nombre as estado, e.id_estado from (select * from ediciones as e inner join articulos as a on e.id_edicion = a.id_articulo where id_autor = ?) as t1, (select e1.id_articulo_origen as origen, max(a1.fecha_creacion) as lastEdition from ediciones as e1, articulos as a1 where e1.id_edicion = a1.id_articulo and a1.id_autor = ? group by origen) as t2, estados as e where t1.id_articulo_origen = t2.origen and t1.id_estado = e.id_estado and e.id_estado != 5 and t1.fecha_creacion = t2.lastEdition",
+      "select a.id_articulo as id, a.titulo, a.fecha_creacion, a.resumen, e.nombre as estado, e.id_estado from articulos as a, estados as e where id_autor = ?  and a.id_estado = e.id_estado and e.id_estado != 5 and id_articulo not in (select id_articulo_origen from ediciones) and id_articulo not in (select id_edicion from ediciones) union select t1.id_articulo as id,t1.titulo,t1.fecha_creacion,t1.resumen,e.nombre as estado, e.id_estado from (select * from ediciones as e inner join articulos as a on e.id_edicion = a.id_articulo where id_autor = ?) as t1, (select e1.id_articulo_origen as origen, max(a1.fecha_creacion) as lastEdition from ediciones as e1, articulos as a1 where e1.id_edicion = a1.id_articulo and a1.id_autor = ? group by origen) as t2, estados as e where t1.id_articulo_origen = t2.origen and t1.id_estado = e.id_estado and e.id_estado != 5 and t1.fecha_creacion = t2.lastEdition order by fecha_creacion desc",
       [req.params.id, req.params.id, req.params.id]
     );
     if (rows.length === 0) {
@@ -136,23 +136,25 @@ export const getArticuloBy = async (req, res) => {
 
 const verifyStates = async (body) => {
   const { estado } = body;
-  if (estado == 2) throw new Error("El articulo ya ha sido enviado a revisión");
-  if (estado == 3) throw new Error("El articulo ya ha sido aceptado/publicado");
-  if (estado == 5) throw new Error("El articulo ya ha sido eliminado");
-  if (estado == 6)
+  if (estado === 2)
+    throw new Error("El articulo ya ha sido enviado a revisión");
+  if (estado === 3)
+    throw new Error("El articulo ya ha sido aceptado/publicado");
+  if (estado === 5) throw new Error("El articulo ya ha sido eliminado");
+  if (estado === 6)
     throw new Error("El articulo ha sido revertido, espere revisión");
 };
 
 const verifyInputs = async (body) => {
   const { titulo, resumen } = body;
-  if ((!titulo || titulo == "") && (!resumen || resumen == ""))
+  if ((!titulo || titulo === "") && (!resumen || resumen === ""))
     throw new Error("Falta titulo y resumen");
-  if (!titulo || titulo == "") throw new Error("Falta titulo");
-  if (!resumen || resumen == "") throw new Error("Falta resumen");
+  if (!titulo || titulo === "") throw new Error("Falta titulo");
+  if (!resumen || resumen === "") throw new Error("Falta resumen");
   if (body.archivo)
-    if (body.archivo == "undefined") throw new Error("Falta Archivo");
+    if (body.archivo === "undefined") throw new Error("Falta Archivo");
   if (body.portada)
-    if (body.portada == "undefined") throw new Error("Falta Portada");
+    if (body.portada === "undefined") throw new Error("Falta Portada");
 };
 
 const verifyFiles = async (files) => {
@@ -242,14 +244,14 @@ export const updateArticulo = async (req, res) => {
     if (req.body.portada) {
       const path = req.body.portada.split("/");
       const origen = path[path.length - 1].split(".");
-      await copy(origen[0] + "." + origen[1], rows.insertId + "." + origen[1]);
+      await copy(`${origen[0]}.${origen[1]}`, `${rows.insertId}.${origen[1]}`);
     } else {
       await renamePortada(req.files, rows.insertId);
     }
 
     if (req.body.archivo) {
       const path = req.body.archivo.split("/");
-      await copy(path[path.length - 1], rows.insertId + ".pdf");
+      await copy(path[path.length - 1], `${rows.insertId}.pdf`);
     } else {
       await renamePdf(req.files, rows.insertId);
     }
@@ -288,10 +290,12 @@ const verifyDelete = async (id) => {
 
   const estado = rows[0]["id_estado"];
 
-  if (estado == 2) throw new Error("El articulo ya ha sido enviado a revisión");
-  if (estado == 3) throw new Error("El articulo ya ha sido aceptado/publicado");
-  if (estado == 5) throw new Error("El articulo ya ha sido eliminado");
-  if (estado == 6)
+  if (estado === 2)
+    throw new Error("El articulo ya ha sido enviado a revisión");
+  if (estado === 3)
+    throw new Error("El articulo ya ha sido aceptado/publicado");
+  if (estado === 5) throw new Error("El articulo ya ha sido eliminado");
+  if (estado === 6)
     throw new Error("El articulo ha sido revertido, espere revisión");
 };
 
