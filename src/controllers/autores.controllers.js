@@ -36,52 +36,6 @@ export const getAutorByFilter = async (req, res) => {
 	}
 };
 
-export const loginAutor = async (req, res) => {
-	try {
-		const { email, contraseña } = req.body;
-		const [usuarios] = await pool.query(
-			"SELECT * FROM usuarios WHERE email = ? AND contraseña = ?",
-			[email, contraseña],
-		);
-		if (usuarios.length === 1) {
-			const [autores] = await pool.query(
-				"SELECT id_usuario FROM autores WHERE id_usuario = ?",
-				[usuarios[0].id_usuario],
-			);
-			if (autores.length === 1) {
-				res.json({
-					autenticado: true,
-					id: usuarios[0].id_usuario,
-					nombres: usuarios[0].nombres,
-					rol: ROLS.AUTOR,
-				});
-			} else {
-				const [editores] = await pool.query(
-					"SELECT id_usuario FROM editores WHERE id_usuario = ?",
-					[usuarios[0].id_usuario],
-				);
-				if (editores.length === 1) {
-					res.json({
-						autenticado: true,
-						id: usuarios[0].id_usuario,
-						nombres: usuarios[0].nombres,
-						rol: ROLS.EDITOR,
-					});
-				} else {
-					res.json({
-						autenticado: false,
-					});
-				}
-			}
-		} else {
-			res.json({
-				autenticado: false,
-			});
-		}
-	} catch (error) {
-		return res.status(500).json({ message: error.message });
-	}
-};
 export const createAutor = async (req, res) => {
 	try {
 		const {

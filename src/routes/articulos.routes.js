@@ -7,7 +7,6 @@ import {
 	getArticulos,
 	getArticulosAutor,
 	multerMiddleware,
-	patchEstadoArticulo,
 } from "../controllers/articulos.controllers.js";
 
 const router = Router();
@@ -28,8 +27,6 @@ router.post(
 	]),
 	createArticulo,
 );
-
-router.patch("/articulos", patchEstadoArticulo);
 
 router.delete("/articulos/:id", deleteArticulo);
 

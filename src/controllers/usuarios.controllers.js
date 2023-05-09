@@ -1,22 +1,74 @@
+import { ROLS } from "../consts.js";
 import { pool } from "../db.js";
+import transporter from "../mailer.js";
 
-export const getUsuarioLogin = async (req, res) => {
+export const usuariosLogin = async (req, res) => {
 	try {
-		const [user] = await pool.query(
-			"select id_usuario from usuarios WHERE nombre_usuario = ? and contraseña = ?",
-			[req.query.usuario, req.query.contraseña],
+		const { email, contraseña } = req.body;
+		const [usuarios] = await pool.query(
+			"SELECT id_usuario, nombre_usuario as nombreUsuario FROM usuarios WHERE email = ? AND contraseña = ?",
+			[email, contraseña],
 		);
-		if (user.length !== 0) {
-			const [rows] = await pool.query("select * from editores where id_editor = ?", [
-				user[0].id_usuario,
-			]);
-			if (rows.length !== 0) user[0]["rol"] = "editor";
-			else user[0]["rol"] = "autor";
-			return res.json(user[0]);
-		} else return res.status(404).json({ message: "Usuario no encontrado" });
+		if (usuarios.length === 1) {
+			const [autores] = await pool.query(
+				"SELECT id_usuario FROM autores WHERE id_usuario = ?",
+				[usuarios[0].id_usuario],
+			);
+			if (autores.length === 1) {
+				res.json({
+					id: usuarios[0].id_usuario,
+					nombreUsuario: usuarios[0].nombreUsuario,
+					rol: ROLS.AUTOR,
+				});
+			} else {
+				const [editores] = await pool.query(
+					"SELECT id_editor FROM editores WHERE id_editor = ?",
+					[usuarios[0].id_usuario],
+				);
+				if (editores.length === 1) {
+					res.json({
+						id: usuarios[0].id_usuario,
+						nombreUsuario: usuarios[0].nombreUsuario,
+						rol: ROLS.EDITOR,
+					});
+				} else {
+					res.status(500).json({ message: "Usuario sin rol" });
+				}
+			}
+		} else {
+			res.status(404).json({ message: "Usuario no registrado" });
+		}
 	} catch (error) {
-		return res.status(500).json({
-			message: error,
-		});
+		return res.status(500).json({ message: error.message });
+	}
+};
+
+export const forgotPassword = async (req, res) => {
+	try {
+		const { email } = req.body;
+		const [rows] = await pool.query("SELECT id_usuario FROM usuarios where email = ?", [
+			email,
+		]);
+		if (rows.length === 1) {
+			const restoreCode = Math.floor(Math.random() * 1000000);
+			await pool.query("UPDATE usuarios SET restoreCode = ? WHERE email = ?", [
+				restoreCode,
+				email,
+			]);
+			transporter.sendMail(
+				{
+					from: "hellodevuam@gmail.com",
+					to: email,
+					subject: "Recuperación de contraseña",
+					text: `Hola, Este es el codigo para recuperar tu contraseña: ${restoreCode}`,
+				},
+				(err, info) => {
+					if (err) return res.status(500).json({ message: err.message });
+					return res.json({ sended: true, info: info });
+				},
+			);
+		} else return res.status(404).json({ message: "Usuario no registrado" });
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
 	}
 };
