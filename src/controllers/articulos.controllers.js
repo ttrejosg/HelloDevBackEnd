@@ -1,4 +1,4 @@
-import { readdir, rename, unlink } from "fs/promises";
+import { readdir, rename, unlink, copyFile } from "fs/promises";
 import multer from "multer";
 import { pool } from "../db.js";
 
@@ -27,6 +27,14 @@ export const multerMiddleware = multer({
     }
   },
 });
+
+const copy = async (src, dest) => {
+  try {
+    await copyFile(FILES_DEST_DIR + src, FILES_DEST_DIR + dest);
+  } catch (error) {
+    new Error(error.message);
+  }
+};
 
 const insertFilesUrls = async (rows) => {
   const files = await readdir(FILES_DEST_DIR);
@@ -70,11 +78,13 @@ export const getArticulos = async (req, res) => {
 export const getArticulosAutor = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "select a.id_articulo as id, a.titulo, a.fecha_creacion, e.nombre as estado from articulos as a, estados as e where id_autor = 1  and a.id_estado = e.id_estado and e.id_estado != 5 and id_articulo not in (select id_articulo_origen from ediciones) union select t1.id_articulo as id,t1.titulo,t1.fecha_creacion,e.nombre as estado from (select * from ediciones as e inner join articulos as a on e.id_edicion = a.id_articulo where id_autor = 1) as t1, (select e1.id_articulo_origen as origen, max(a1.fecha_creacion) as lastEdition from ediciones as e1, articulos as a1 where e1.id_edicion = a1.id_articulo and a1.id_autor = 1 group by origen) as t2, estados as e where t1.id_articulo_origen = t2.origen and t1.id_estado = e.id_estado and e.id_estado != 5 and t1.fecha_creacion = t2.lastEdition",
+      "select a.id_articulo as id, a.titulo, a.fecha_creacion, a.resumen, e.nombre as estado, e.id_estado from articulos as a, estados as e where id_autor = ?  and a.id_estado = e.id_estado and e.id_estado != 5 and id_articulo not in (select id_articulo_origen from ediciones) and id_articulo not in (select id_edicion from ediciones)  union select t1.id_articulo as id,t1.titulo,t1.fecha_creacion,t1.resumen,e.nombre as estado, e.id_estado from (select * from ediciones as e inner join articulos as a on e.id_edicion = a.id_articulo where id_autor = ?) as t1, (select e1.id_articulo_origen as origen, max(a1.fecha_creacion) as lastEdition from ediciones as e1, articulos as a1 where e1.id_edicion = a1.id_articulo and a1.id_autor = ? group by origen) as t2, estados as e where t1.id_articulo_origen = t2.origen and t1.id_estado = e.id_estado and e.id_estado != 5 and t1.fecha_creacion = t2.lastEdition",
       [req.params.id, req.params.id, req.params.id]
     );
-    if (rows.length === 0)
+    if (rows.length === 0) {
+      console.log("rows.json()");
       return res.status(404).json({ message: "Articulo/s no encontrados" });
+    }
     await insertFilesUrls(rows);
     res.json(rows);
   } catch (error) {
@@ -124,7 +134,26 @@ export const getArticuloBy = async (req, res) => {
   }
 };
 
-//create Articulo Logic
+const verifyStates = async (body) => {
+  const { estado } = body;
+  if (estado == 2) throw new Error("El articulo ya ha sido enviado a revisión");
+  if (estado == 3) throw new Error("El articulo ya ha sido aceptado/publicado");
+  if (estado == 5) throw new Error("El articulo ya ha sido eliminado");
+  if (estado == 6)
+    throw new Error("El articulo ha sido revertido, espere revisión");
+};
+
+const verifyInputs = async (body) => {
+  const { titulo, resumen } = body;
+  if ((!titulo || titulo == "") && (!resumen || resumen == ""))
+    throw new Error("Falta titulo y resumen");
+  if (!titulo || titulo == "") throw new Error("Falta titulo");
+  if (!resumen || resumen == "") throw new Error("Falta resumen");
+  if (body.archivo)
+    if (body.archivo == "undefined") throw new Error("Falta Archivo");
+  if (body.portada)
+    if (body.portada == "undefined") throw new Error("Falta Portada");
+};
 
 const verifyFiles = async (files) => {
   if (!files.archivo && !files.portada)
@@ -138,6 +167,20 @@ const renameFiles = async (files, to) => {
     `${FILES_DEST_DIR}${files.archivo[0].filename}`,
     `${FILES_DEST_DIR}${to}.pdf`
   );
+  await rename(
+    `${FILES_DEST_DIR}${files.portada[0].filename}`,
+    `${FILES_DEST_DIR}${to}.${files.portada[0].mimetype.split("/")[1]}`
+  );
+};
+
+const renamePdf = async (files, to) => {
+  await rename(
+    `${FILES_DEST_DIR}${files.archivo[0].filename}`,
+    `${FILES_DEST_DIR}${to}.pdf`
+  );
+};
+
+const renamePortada = async (files, to) => {
   await rename(
     `${FILES_DEST_DIR}${files.portada[0].filename}`,
     `${FILES_DEST_DIR}${to}.${files.portada[0].mimetype.split("/")[1]}`
@@ -159,13 +202,14 @@ const deleteFiles = async (files) => {
  */
 export const createArticulo = async (req, res) => {
   try {
+    await verifyInputs(req.body);
     await verifyFiles(req.files);
 
-    const { titulo, resumen } = req.body;
+    const { titulo, resumen, id_autor } = req.body;
 
     const [rows] = await pool.query(
       "INSERT INTO articulos (titulo, resumen, fecha_creacion,id_estado,id_autor,fecha_publicación) VALUES (?,?,now(),?,?,?)",
-      [titulo, resumen, 1, 1, null]
+      [titulo, resumen, 1, id_autor, null]
     );
 
     if (rows.affectedRows <= 0) throw new Error("No se pudo crear el articulo");
@@ -181,6 +225,76 @@ export const createArticulo = async (req, res) => {
   }
 };
 
+export const updateArticulo = async (req, res) => {
+  try {
+    await verifyStates(req.body);
+    await verifyInputs(req.body);
+
+    const { id_articulo, titulo, resumen, estado, id_autor } = req.body;
+
+    const [rows] = await pool.query(
+      "INSERT INTO articulos (titulo, resumen, fecha_creacion,id_estado,id_autor,fecha_publicación) VALUES (?,?,now(),?,?,?)",
+      [titulo, resumen, estado, id_autor, null]
+    );
+
+    if (rows.affectedRows <= 0) throw new Error("No se pudo crear el articulo");
+
+    if (req.body.portada) {
+      const path = req.body.portada.split("/");
+      const origen = path[path.length - 1].split(".");
+      await copy(origen[0] + "." + origen[1], rows.insertId + "." + origen[1]);
+    } else {
+      await renamePortada(req.files, rows.insertId);
+    }
+
+    if (req.body.archivo) {
+      const path = req.body.archivo.split("/");
+      await copy(path[path.length - 1], rows.insertId + ".pdf");
+    } else {
+      await renamePdf(req.files, rows.insertId);
+    }
+
+    const [id_origen] = await pool.query(
+      "SELECT id_articulo_origen FROM ediciones WHERE id_edicion = ?",
+      [id_articulo]
+    );
+
+    const id_articulo_origen = id_origen[0]
+      ? id_origen[0]["id_articulo_origen"]
+      : id_articulo;
+
+    const [result] = await pool.query(
+      "INSERT INTO ediciones (id_articulo_origen, id_edicion) VALUES (?,?)",
+      [id_articulo_origen, rows.insertId]
+    );
+
+    if (result.affectedRows <= 0)
+      throw new Error("No se pudo crear la edición del articulo");
+
+    res.send({
+      id: rows.insertId,
+    });
+  } catch (error) {
+    deleteFiles(req.files);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const verifyDelete = async (id) => {
+  const [rows] = await pool.query(
+    "SELECT id_estado FROM full_articulos WHERE id = ?",
+    [id]
+  );
+
+  const estado = rows[0]["id_estado"];
+
+  if (estado == 2) throw new Error("El articulo ya ha sido enviado a revisión");
+  if (estado == 3) throw new Error("El articulo ya ha sido aceptado/publicado");
+  if (estado == 5) throw new Error("El articulo ya ha sido eliminado");
+  if (estado == 6)
+    throw new Error("El articulo ha sido revertido, espere revisión");
+};
+
 /**
  *
  * @param {*} req
@@ -189,6 +303,8 @@ export const createArticulo = async (req, res) => {
  */
 export const deleteArticulo = async (req, res) => {
   try {
+    await verifyDelete(req.params.id);
+
     const [result] = await pool.query(
       "UPDATE articulos SET id_estado = 5 WHERE id_articulo = ?",
       [req.params.id]
