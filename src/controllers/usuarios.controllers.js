@@ -88,12 +88,26 @@ export const restoreCode = async (req, res) => {
 			[email, code],
 		);
 		if (rows.length === 1) {
-			return res.json({
-				id: rows.id_usuario,
-			});
+			res.json(rows[0]);
 		} else {
 			return res.status(404).json({ message: "Codigo incorrecto" });
 		}
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+};
+
+export const restorePassword = async (req, res) => {
+	try {
+		const { id, newPassword, confirmPassword } = req.body;
+		if (newPassword !== confirmPassword)
+			return res.status(500).json({ message: "Las contraseñas no coinciden" });
+
+		await pool.query(
+			"UPDATE usuarios SET contraseña = ? WHERE id_usuario = ?",
+			[newPassword, id],
+		);
+		return res.json({ message: "Contraseña actualizada" });
 	} catch (error) {
 		return res.status(500).json({ message: error.message });
 	}
