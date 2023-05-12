@@ -1,4 +1,4 @@
-import { AUTHOR_FILTERS } from "../../../FrontEnd/src/const.js";
+import { AUTHOR_FILTERS } from "../consts.js";
 import { pool } from "../db.js";
 
 const ROLS = {

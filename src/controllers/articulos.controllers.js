@@ -325,7 +325,7 @@ export const searchArticulos = async (req, res) => {
 		const { filter, filterValue } = req.body;
 		if (filter === ARTICLE_FILTERS.ALL) {
 			const [rows] = await pool.query(
-				"SELECT * FROM full_articulos WHERE titulo LIKE ? OR autor LIKE ? OR fecha_creacion LIKE ? AND id_estado = 3",
+				"SELECT * FROM full_articulos WHERE (titulo LIKE ? OR autor LIKE ? OR fecha_publicación LIKE ?) AND id_estado = 3",
 				[`%${filterValue}%`, `%${filterValue}%`, `%${filterValue}%`],
 			);
 			await insertFilesUrls(rows);
@@ -336,7 +336,7 @@ export const searchArticulos = async (req, res) => {
 			filter === ARTICLE_FILTERS.DATE
 		) {
 			const [rows] = await pool.query(
-				`SELECT * FROM full_articulos WHERE ${filter} LIKE ? AND id_estado = 3`,
+				`SELECT * FROM full_articulos WHERE (${filter} LIKE ?) AND (id_estado = 3)`,
 				[`%${filterValue}%`],
 			);
 			await insertFilesUrls(rows);
