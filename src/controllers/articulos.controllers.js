@@ -135,8 +135,9 @@ export const getArticuloBy = async (req, res) => {
 };
 
 const verifyStates = async (body) => {
-  const { estado } = body;
-  if (estado === 2)
+  let { estado } = body;
+  if(typeof estado === "string") estado = parseInt(estado);
+  if  (estado === 2)
     throw new Error("El articulo ya ha sido enviado a revisión");
   if (estado === 3)
     throw new Error("El articulo ya ha sido aceptado/publicado");
