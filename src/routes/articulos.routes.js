@@ -9,6 +9,7 @@ import {
 	multerMiddleware,
 	searchArticulos,
 	updateArticulo,
+	getArticulosAutorPublicados
 } from "../controllers/articulos.controllers.js";
 
 const router = Router();
@@ -20,6 +21,8 @@ router.get("/articulos/autor/:id", getArticulosAutor);
 router.get("/articulos/by", getArticuloBy);
 
 router.get("/articulos/:id", getArticuloById);
+
+router.get("/articulos/autor/publicados/:id", getArticulosAutorPublicados);
 
 router.post(
 	"/articulos",

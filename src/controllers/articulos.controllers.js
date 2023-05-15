@@ -348,3 +348,25 @@ export const searchArticulos = async (req, res) => {
 		return res.status(500).json({ message: error.message });
 	}
 };
+
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns
+ */
+export const getArticulosAutorPublicados = async (req, res) => {
+	try {
+		const [rows] = await pool.query(
+			"select a.id_articulo as id, a.titulo, a.fecha_creacion, a.resumen, e.nombre as estado, e.id_estado from articulos as a, estados as e where id_autor = ?  and a.id_estado = e.id_estado and e.id_estado = 3 and id_articulo not in (select id_articulo_origen from ediciones) and id_articulo not in (select id_edicion from ediciones) union select t1.id_articulo as id,t1.titulo,t1.fecha_creacion,t1.resumen,e.nombre as estado, e.id_estado from (select * from ediciones as e inner join articulos as a on e.id_edicion = a.id_articulo where id_autor = ?) as t1, (select e1.id_articulo_origen as origen, max(a1.fecha_creacion) as lastEdition from ediciones as e1, articulos as a1 where e1.id_edicion = a1.id_articulo and a1.id_autor = ? group by origen) as t2, estados as e where t1.id_articulo_origen = t2.origen and t1.id_estado = e.id_estado and e.id_estado = 3 and t1.fecha_creacion = t2.lastEdition order by fecha_creacion desc",
+			[req.params.id, req.params.id, req.params.id],
+		);
+		if (rows.length === 0) {
+			return res.json(rows)
+		}
+		await insertFilesUrls(rows);
+		res.json(rows);
+	} catch (error) {
+		return res.status(500).json({ message: error.message });
+	}
+};
