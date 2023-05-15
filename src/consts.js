@@ -14,7 +14,6 @@ export const AUTHOR_FILTERS = {
 	ALL: "0",
 	NAME: "nombres",
 	LASTNAME: "apellidos",
-	SEUDONIMO: "seudonimo",
 	EMAIL: "email",
 	TEL: "telefono",
 	NATION: "nacionalidad",
