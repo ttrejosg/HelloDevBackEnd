@@ -217,7 +217,7 @@ export const createArticulo = async (req, res) => {
 
 		renameFiles(req.files, rows.insertId);
 
-		res.send({
+		res.json({
 			id: rows.insertId,
 		});
 	} catch (error) {
@@ -272,7 +272,7 @@ export const updateArticulo = async (req, res) => {
 		if (result.affectedRows <= 0)
 			throw new Error("No se pudo crear la edición del articulo");
 
-		res.send({
+		res.json({
 			id: rows.insertId,
 		});
 	} catch (error) {

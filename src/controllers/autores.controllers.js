@@ -83,7 +83,7 @@ export const createAutor = async (req, res) => {
 			"INSERT INTO autores (id_usuario,seudonimo) VALUES (?,?)",
 			[rows.insertId, ""],
 		);
-		res.send({ id: rows.insertId });
+		res.json({ id: rows.insertId });
 	} catch (error) {
 		return res.status(500).json({ message: error.message });
 	}

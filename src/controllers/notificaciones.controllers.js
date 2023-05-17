@@ -1,5 +1,6 @@
 import { pool } from "../db.js";
 import { readdir } from "fs/promises";
+import { EDITOR } from "../consts.js";
 
 const FILES_DEST_DIR = "./uploads/articulos/";
 
@@ -71,7 +72,7 @@ const verify = async (body) => {
   let { id_emisor, id_estado, new_estado } = body;
   if(typeof id_estado === "string") id_estado = parseInt(id_estado);
   if(typeof new_estado === "string") new_estado = parseInt(new_estado);
-  if (id_emisor !== 10) {
+  if (id_emisor !== EDITOR) {
     if (id_estado === 2)
       throw new Error("El articulo ya ha sido enviado a revisión");
     if (id_estado === 3)
@@ -118,9 +119,7 @@ export const createNotificacion = async (req, res) => {
     }
     
 
-    res.send({
-      id: rows.insertId,
-    });
+    res.json({id: rows.insertId});
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
