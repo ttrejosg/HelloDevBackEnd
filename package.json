@@ -5,6 +5,7 @@
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
+		"test":"mocha test/api.test.js --exit",
 		"dev": "nodemon src/index.js"
 	},
 	"keywords": [],
@@ -20,7 +21,9 @@
 		"nodemailer": "6.9.1"
 	},
 	"devDependencies": {
+		"mocha": "^10.2.0",
 		"nodemon": "2.0.22",
-		"rome": "12.0.0"
+		"rome": "12.0.0",
+		"supertest": "^6.3.3"
 	}
 }
