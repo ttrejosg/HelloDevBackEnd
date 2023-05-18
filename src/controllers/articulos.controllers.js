@@ -133,15 +133,15 @@ export const getArticuloBy = async (req, res) => {
 };
 
 const verifyStates = async (body) => {
-  let { estado } = body;
-  if(typeof estado === "string") estado = parseInt(estado);
-  if  (estado === 2)
-    throw new Error("El articulo ya ha sido enviado a revisión");
-  if (estado === 3)
-    throw new Error("El articulo ya ha sido aceptado/publicado");
-  if (estado === 5) throw new Error("El articulo ya ha sido eliminado");
-  if (estado === 6)
-    throw new Error("El articulo ha sido revertido, espere revisión");
+	let { estado } = body;
+	if (typeof estado === "string") estado = parseInt(estado);
+	if (estado === 2)
+		throw new Error("El articulo ya ha sido enviado a revisión");
+	if (estado === 3)
+		throw new Error("El articulo ya ha sido aceptado/publicado");
+	if (estado === 5) throw new Error("El articulo ya ha sido eliminado");
+	if (estado === 6)
+		throw new Error("El articulo ha sido revertido, espere revisión");
 };
 
 const verifyInputs = async (body) => {
@@ -362,7 +362,7 @@ export const getArticulosAutorPublicados = async (req, res) => {
 			[req.params.id, req.params.id, req.params.id],
 		);
 		if (rows.length === 0) {
-			return res.json(rows)
+			return res.json(rows);
 		}
 		await insertFilesUrls(rows);
 		res.json(rows);

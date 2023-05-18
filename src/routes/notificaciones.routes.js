@@ -9,7 +9,10 @@ import {
 
 const router = Router();
 //TODO: Seleccionar solo lo necesario de cada consulta.
-router.get("/notificaciones/editor/historial/:id", getNotificacionesEditorHistorial);
+router.get(
+	"/notificaciones/editor/historial/:id",
+	getNotificacionesEditorHistorial,
+);
 
 router.get("/notificaciones/editor/:id", getNotificacionesEditor);
 

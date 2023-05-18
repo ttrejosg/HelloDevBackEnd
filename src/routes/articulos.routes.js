@@ -9,7 +9,7 @@ import {
 	multerMiddleware,
 	searchArticulos,
 	updateArticulo,
-	getArticulosAutorPublicados
+	getArticulosAutorPublicados,
 } from "../controllers/articulos.controllers.js";
 
 const router = Router();
