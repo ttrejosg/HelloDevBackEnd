@@ -5,13 +5,8 @@
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
-<<<<<<< HEAD
 		"test":"mocha test/api.test.js --exit",
 		"dev": "nodemon src/index.js"
-=======
-		"dev": "nodemon src/index.js",
-		"test": "mocha test/api.test.js"
->>>>>>> 1fb7f0cbe0355a36c7221dde21126cc6857d18ba
 	},
 	"keywords": [],
 	"author": "",
