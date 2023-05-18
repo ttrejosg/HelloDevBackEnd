@@ -69,29 +69,6 @@ export const getNotificacionesAutor = async (req, res) => {
 };
 
 const verify = async (body) => {
-<<<<<<< HEAD
-	let { id_emisor, id_estado, new_estado } = body;
-	if (typeof id_estado === "string") id_estado = parseInt(id_estado);
-	if (typeof new_estado === "string") new_estado = parseInt(new_estado);
-	if (id_emisor !== 10) {
-		if (id_estado === 2)
-			throw new Error("El articulo ya ha sido enviado a revisión");
-		if (id_estado === 3)
-			throw new Error("El articulo ya ha sido aceptado/publicado");
-		if (id_estado === 5) throw new Error("El articulo ya ha sido eliminado");
-		if (id_estado === 6)
-			throw new Error("El articulo ha sido revertido, espere revisión");
-	} else {
-		if (new_estado === 6) {
-			const { fecha } = body;
-			const difference_minutes = (new Date() - new Date(fecha)) / 1000 / 60;
-			if (difference_minutes > 5)
-				throw new Error(
-					"No se puede revertir el articulo, ha pasado el tiempo limite",
-				);
-		}
-	}
-=======
   let { id_emisor, id_estado, new_estado } = body;
   if(typeof id_estado === "string") id_estado = parseInt(id_estado);
   if(typeof new_estado === "string") new_estado = parseInt(new_estado);
@@ -110,7 +87,6 @@ const verify = async (body) => {
       if(difference_minutes > 5) throw new Error("No se puede revertir el articulo, ha pasado el tiempo limite");
     };
   }
->>>>>>> 1fb7f0cbe0355a36c7221dde21126cc6857d18ba
 };
 
 export const createNotificacion = async (req, res) => {
@@ -141,20 +117,10 @@ export const createNotificacion = async (req, res) => {
 				[new_estado, id_articulo_notificacion],
 			);
 		}
-
-<<<<<<< HEAD
-		res.send({
-			id: rows.insertId,
-		});
-	} catch (error) {
-		return res.status(500).json({ message: error.message });
-	}
-=======
     res.json({id: rows.insertId});
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
->>>>>>> 1fb7f0cbe0355a36c7221dde21126cc6857d18ba
 };
 
 export const patchEstadoNotificacion = async (req, res) => {
