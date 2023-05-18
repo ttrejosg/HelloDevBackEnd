@@ -26,3 +26,5 @@ export const MIME_TYPES = [
 	"image/png",
 	"image/jpg",
 ];
+
+export const EDITOR = 1;
